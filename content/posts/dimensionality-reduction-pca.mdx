@@ -1,0 +1,539 @@
+---
+title: "Dimensionality Reduction: PCA, t-SNE, and UMAP Explained"
+date: "2024-02-05"
+excerpt: "Understand the curse of dimensionality and learn how PCA, t-SNE, and UMAP can help visualize and analyze high-dimensional data effectively."
+tags: ["Dimensionality Reduction", "PCA", "t-SNE", "UMAP", "Data Visualization"]
+published: true
+---
+
+# Dimensionality Reduction: PCA, t-SNE, and UMAP Explained
+
+High-dimensional data is everywhere in modern data science. Dimensionality reduction techniques help us visualize, analyze, and process this data more effectively.
+
+## The Curse of Dimensionality
+
+As dimensions increase, several problems emerge:
+
+1. **Distance concentration**: All points become equidistant
+2. **Sparsity**: Data becomes increasingly sparse
+3. **Computational complexity**: Algorithms slow down dramatically
+
+The volume of a unit hypersphere in $d$ dimensions:
+
+$$V_d = \frac{\pi^{d/2}}{\Gamma(d/2 + 1)}$$
+
+As $d$ increases, most volume concentrates near the surface!
+
+## Principal Component Analysis (PCA)
+
+PCA finds orthogonal directions of maximum variance in the data.
+
+### Mathematical Foundation
+
+Given data matrix $X \in \mathbb{R}^{n \times d}$, PCA finds principal components by solving:
+
+$$\max_{w: ||w||=1} \text{Var}(Xw) = \max_{w: ||w||=1} w^T S w$$
+
+Where $S$ is the covariance matrix:
+
+$$S = \frac{1}{n-1} X^T X$$
+
+The solution is given by the eigenvalue decomposition:
+
+$$S = V \Lambda V^T$$
+
+Where $V$ contains eigenvectors (principal components) and $\Lambda$ contains eigenvalues.
+
+### Implementation from Scratch
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+
+class PCAFromScratch:
+    def __init__(self, n_components=2):
+        self.n_components = n_components
+        self.components = None
+        self.mean = None
+        self.explained_variance_ratio = None
+    
+    def fit(self, X):
+        """Fit PCA on data."""
+        # Center the data
+        self.mean = np.mean(X, axis=0)
+        X_centered = X - self.mean
+        
+        # Compute covariance matrix
+        cov_matrix = np.cov(X_centered.T)
+        
+        # Eigenvalue decomposition
+        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+        
+        # Sort by eigenvalues (descending)
+        idx = np.argsort(eigenvalues)[::-1]
+        eigenvalues = eigenvalues[idx]
+        eigenvectors = eigenvectors[:, idx]
+        
+        # Store components and explained variance
+        self.components = eigenvectors[:, :self.n_components].T
+        self.explained_variance_ratio = eigenvalues[:self.n_components] / np.sum(eigenvalues)
+        
+        return self
+    
+    def transform(self, X):
+        """Transform data to lower dimensional space."""
+        X_centered = X - self.mean
+        return np.dot(X_centered, self.components.T)
+    
+    def fit_transform(self, X):
+        """Fit and transform in one step."""
+        return self.fit(X).transform(X)
+    
+    def inverse_transform(self, X_transformed):
+        """Reconstruct original data from transformed data."""
+        return np.dot(X_transformed, self.components) + self.mean
+
+# Example usage
+iris = load_iris()
+X = iris.data
+
+# Standardize features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Apply PCA
+pca = PCAFromScratch(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+print(f"Explained variance ratio: {pca.explained_variance_ratio}")
+print(f"Total variance explained: {np.sum(pca.explained_variance_ratio):.3f}")
+```
+
+### Visualizing PCA Results
+
+```python
+def plot_pca_analysis(X, y, target_names):
+    """Comprehensive PCA visualization."""
+    
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    
+    # 1. Scree plot
+    pca_full = PCAFromScratch(n_components=X.shape[1])
+    pca_full.fit(X)
+    
+    axes[0,0].plot(range(1, len(pca_full.explained_variance_ratio) + 1), 
+                   pca_full.explained_variance_ratio, 'bo-')
+    axes[0,0].set_xlabel('Principal Component')
+    axes[0,0].set_ylabel('Explained Variance Ratio')
+    axes[0,0].set_title('Scree Plot')
+    axes[0,0].grid(True)
+    
+    # 2. Cumulative variance
+    cumsum = np.cumsum(pca_full.explained_variance_ratio)
+    axes[0,1].plot(range(1, len(cumsum) + 1), cumsum, 'ro-')
+    axes[0,1].axhline(y=0.95, color='k', linestyle='--', label='95% variance')
+    axes[0,1].set_xlabel('Number of Components')
+    axes[0,1].set_ylabel('Cumulative Explained Variance')
+    axes[0,1].set_title('Cumulative Variance Explained')
+    axes[0,1].legend()
+    axes[0,1].grid(True)
+    
+    # 3. 2D projection
+    pca_2d = PCAFromScratch(n_components=2)
+    X_2d = pca_2d.fit_transform(X)
+    
+    colors = ['red', 'green', 'blue']
+    for i, target_name in enumerate(target_names):
+        axes[1,0].scatter(X_2d[y == i, 0], X_2d[y == i, 1], 
+                         c=colors[i], label=target_name, alpha=0.7)
+    axes[1,0].set_xlabel(f'PC1 ({pca_2d.explained_variance_ratio[0]:.2f})')
+    axes[1,0].set_ylabel(f'PC2 ({pca_2d.explained_variance_ratio[1]:.2f})')
+    axes[1,0].set_title('PCA Projection')
+    axes[1,0].legend()
+    axes[1,0].grid(True)
+    
+    # 4. Component loadings
+    feature_names = [f'Feature {i+1}' for i in range(X.shape[1])]
+    
+    x_pos = np.arange(len(feature_names))
+    axes[1,1].bar(x_pos - 0.2, pca_2d.components[0], 0.4, label='PC1', alpha=0.7)
+    axes[1,1].bar(x_pos + 0.2, pca_2d.components[1], 0.4, label='PC2', alpha=0.7)
+    axes[1,1].set_xlabel('Features')
+    axes[1,1].set_ylabel('Component Loading')
+    axes[1,1].set_title('Principal Component Loadings')
+    axes[1,1].set_xticks(x_pos)
+    axes[1,1].set_xticklabels(feature_names, rotation=45)
+    axes[1,1].legend()
+    axes[1,1].grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+# Visualize iris dataset
+plot_pca_analysis(X_scaled, iris.target, iris.target_names)
+```
+
+## t-SNE (t-Distributed Stochastic Neighbor Embedding)
+
+t-SNE preserves local neighborhood structure, making it excellent for visualization.
+
+### Mathematical Foundation
+
+t-SNE minimizes the Kullback-Leibler divergence between probability distributions:
+
+$$KL(P||Q) = \sum_i \sum_j p_{ij} \log \frac{p_{ij}}{q_{ij}}$$
+
+**High-dimensional similarities** (Gaussian):
+$$p_{j|i} = \frac{\exp(-||x_i - x_j||^2 / 2\sigma_i^2)}{\sum_{k \neq i} \exp(-||x_i - x_k||^2 / 2\sigma_i^2)}$$
+
+**Low-dimensional similarities** (t-distribution):
+$$q_{ij} = \frac{(1 + ||y_i - y_j||^2)^{-1}}{\sum_{k \neq l} (1 + ||y_k - y_l||^2)^{-1}}$$
+
+### Implementation
+
+```python
+from sklearn.manifold import TSNE
+import time
+
+def compare_tsne_parameters(X, y, target_names):
+    """Compare different t-SNE parameters."""
+    
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    axes = axes.ravel()
+    
+    # Different perplexity values
+    perplexities = [5, 15, 30, 50, 100]
+    learning_rates = [200]
+    
+    for i, perp in enumerate(perplexities[:5]):
+        tsne = TSNE(n_components=2, perplexity=perp, learning_rate=200, random_state=42)
+        X_tsne = tsne.fit_transform(X)
+        
+        colors = ['red', 'green', 'blue']
+        for j, target_name in enumerate(target_names):
+            axes[i].scatter(X_tsne[y == j, 0], X_tsne[y == j, 1], 
+                           c=colors[j], label=target_name, alpha=0.7)
+        
+        axes[i].set_title(f'Perplexity = {perp}')
+        axes[i].legend()
+        axes[i].grid(True, alpha=0.3)
+    
+    # Learning rate comparison
+    learning_rates = [50, 200, 1000]
+    for i, lr in enumerate(learning_rates):
+        tsne = TSNE(n_components=2, perplexity=30, learning_rate=lr, random_state=42)
+        X_tsne = tsne.fit_transform(X)
+        
+        for j, target_name in enumerate(target_names):
+            axes[5].scatter(X_tsne[y == j, 0], X_tsne[y == j, 1], 
+                           c=colors[j], alpha=0.7, s=20, 
+                           label=f'{target_name} (LR={lr})' if i == 0 else '')
+    
+    axes[5].set_title('Learning Rate Comparison')
+    axes[5].legend()
+    axes[5].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+
+# Usage
+compare_tsne_parameters(X_scaled, iris.target, iris.target_names)
+```
+
+### When to Use t-SNE
+- ✅ Visualization of high-dimensional data
+- ✅ Discovering clusters and patterns
+- ✅ Non-linear relationships
+- ❌ Interpretable dimensions
+- ❌ Preserving global structure
+- ❌ Very large datasets
+
+## UMAP (Uniform Manifold Approximation and Projection)
+
+UMAP is faster than t-SNE and better preserves global structure.
+
+### Key Advantages
+
+1. **Faster computation**: $O(n \log n)$ vs t-SNE's $O(n^2)$
+2. **Preserves global structure**: Better than t-SNE
+3. **Theoretically grounded**: Based on Riemannian geometry
+
+### Implementation
+
+```python
+import umap
+from sklearn.datasets import load_digits
+
+def compare_dimensionality_reduction(X, y, target_names):
+    """Compare PCA, t-SNE, and UMAP."""
+    
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    
+    # PCA
+    start_time = time.time()
+    pca = PCAFromScratch(n_components=2)
+    X_pca = pca.fit_transform(X)
+    pca_time = time.time() - start_time
+    
+    # t-SNE
+    start_time = time.time()
+    tsne = TSNE(n_components=2, random_state=42)
+    X_tsne = tsne.fit_transform(X)
+    tsne_time = time.time() - start_time
+    
+    # UMAP
+    start_time = time.time()
+    umap_model = umap.UMAP(n_components=2, random_state=42)
+    X_umap = umap_model.fit_transform(X)
+    umap_time = time.time() - start_time
+    
+    # Plot results
+    results = [
+        (X_pca, f'PCA ({pca_time:.2f}s)'),
+        (X_tsne, f't-SNE ({tsne_time:.2f}s)'),
+        (X_umap, f'UMAP ({umap_time:.2f}s)')
+    ]
+    
+    colors = plt.cm.Set1(np.linspace(0, 1, len(target_names)))
+    
+    for i, (X_reduced, title) in enumerate(results):
+        for j, target_name in enumerate(target_names):
+            mask = y == j
+            axes[i].scatter(X_reduced[mask, 0], X_reduced[mask, 1], 
+                           c=[colors[j]], label=target_name, alpha=0.7)
+        
+        axes[i].set_title(title)
+        axes[i].legend()
+        axes[i].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    return {
+        'PCA': {'time': pca_time, 'data': X_pca},
+        't-SNE': {'time': tsne_time, 'data': X_tsne},
+        'UMAP': {'time': umap_time, 'data': X_umap}
+    }
+
+# Load digits dataset for comparison
+digits = load_digits()
+X_digits = StandardScaler().fit_transform(digits.data)
+
+results = compare_dimensionality_reduction(
+    X_digits, digits.target, 
+    [str(i) for i in range(10)]
+)
+```
+
+## Choosing the Right Method
+
+### PCA
+**Best for**: Linear relationships, preserving variance, interpretable components
+
+**Mathematical properties**:
+- Optimal for Gaussian data
+- Minimizes reconstruction error: $||X - X_{reconstructed}||^2$
+- Components are orthogonal
+
+**Code example**:
+```python
+# Explained variance analysis
+def pca_analysis(X, max_components=None):
+    """Analyze optimal number of PCA components."""
+    if max_components is None:
+        max_components = min(X.shape)
+    
+    pca = PCAFromScratch(n_components=max_components)
+    pca.fit(X)
+    
+    # Find components for 95% variance
+    cumsum = np.cumsum(pca.explained_variance_ratio)
+    n_95 = np.argmax(cumsum >= 0.95) + 1
+    
+    print(f"Components for 95% variance: {n_95}")
+    print(f"Components for 99% variance: {np.argmax(cumsum >= 0.99) + 1}")
+    
+    return pca.explained_variance_ratio
+
+variance_ratios = pca_analysis(X_scaled)
+```
+
+### t-SNE
+**Best for**: Non-linear visualization, cluster discovery
+
+**Hyperparameters**:
+- `perplexity`: Balance local vs global structure (5-50)
+- `learning_rate`: Step size (50-1000)
+- `early_exaggeration`: Emphasize clusters early
+
+### UMAP
+**Best for**: Large datasets, preserving global structure
+
+**Hyperparameters**:
+- `n_neighbors`: Local neighborhood size
+- `min_dist`: Minimum distance in embedding
+- `metric`: Distance metric to use
+
+## Advanced Techniques
+
+### 1. Kernel PCA
+
+For non-linear dimensionality reduction:
+
+```python
+from sklearn.decomposition import KernelPCA
+
+def apply_kernel_pca(X, kernel='rbf', gamma=0.1):
+    """Apply Kernel PCA with different kernels."""
+    
+    kernels = ['linear', 'rbf', 'poly', 'sigmoid']
+    fig, axes = plt.subplots(1, len(kernels), figsize=(20, 5))
+    
+    for i, kernel in enumerate(kernels):
+        kpca = KernelPCA(n_components=2, kernel=kernel, gamma=gamma)
+        X_kpca = kpca.fit_transform(X)
+        
+        # Plot results
+        colors = ['red', 'green', 'blue']
+        for j, color in enumerate(colors):
+            mask = iris.target == j
+            axes[i].scatter(X_kpca[mask, 0], X_kpca[mask, 1], 
+                           c=color, label=iris.target_names[j], alpha=0.7)
+        
+        axes[i].set_title(f'Kernel PCA ({kernel})')
+        axes[i].legend()
+        axes[i].grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+apply_kernel_pca(X_scaled)
+```
+
+### 2. Autoencoders
+
+Neural network approach to dimensionality reduction:
+
+```python
+import tensorflow as tf
+
+class Autoencoder:
+    def __init__(self, input_dim, encoding_dim):
+        self.input_dim = input_dim
+        self.encoding_dim = encoding_dim
+        self.autoencoder = None
+        self.encoder = None
+    
+    def build_model(self):
+        """Build autoencoder architecture."""
+        # Encoder
+        input_layer = tf.keras.Input(shape=(self.input_dim,))
+        encoded = tf.keras.layers.Dense(128, activation='relu')(input_layer)
+        encoded = tf.keras.layers.Dense(64, activation='relu')(encoded)
+        encoded = tf.keras.layers.Dense(self.encoding_dim, activation='relu')(encoded)
+        
+        # Decoder
+        decoded = tf.keras.layers.Dense(64, activation='relu')(encoded)
+        decoded = tf.keras.layers.Dense(128, activation='relu')(decoded)
+        decoded = tf.keras.layers.Dense(self.input_dim, activation='sigmoid')(decoded)
+        
+        # Models
+        self.autoencoder = tf.keras.Model(input_layer, decoded)
+        self.encoder = tf.keras.Model(input_layer, encoded)
+        
+        self.autoencoder.compile(optimizer='adam', loss='mse')
+        
+        return self.autoencoder
+    
+    def fit(self, X, epochs=100, batch_size=32):
+        """Train the autoencoder."""
+        if self.autoencoder is None:
+            self.build_model()
+        
+        history = self.autoencoder.fit(
+            X, X,
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_split=0.2,
+            verbose=1
+        )
+        
+        return history
+    
+    def encode(self, X):
+        """Encode data to lower dimensional space."""
+        return self.encoder.predict(X)
+
+# Usage
+autoencoder = Autoencoder(input_dim=X_scaled.shape[1], encoding_dim=2)
+history = autoencoder.fit(X_scaled, epochs=50)
+X_encoded = autoencoder.encode(X_scaled)
+```
+
+## Practical Guidelines
+
+### 1. Data Preprocessing
+```python
+# Always standardize features for PCA
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# For t-SNE, consider PCA preprocessing for high dimensions
+if X.shape[1] > 50:
+    pca_prep = PCAFromScratch(n_components=50)
+    X_prep = pca_prep.fit_transform(X_scaled)
+else:
+    X_prep = X_scaled
+```
+
+### 2. Validation
+```python
+def reconstruction_error(X_original, X_reduced, method='pca'):
+    """Calculate reconstruction error."""
+    if method == 'pca':
+        # PCA can reconstruct
+        pca = PCAFromScratch(n_components=X_reduced.shape[1])
+        pca.fit(X_original)
+        X_reconstructed = pca.inverse_transform(X_reduced)
+        return np.mean((X_original - X_reconstructed) ** 2)
+    else:
+        # For t-SNE/UMAP, use embedding quality metrics
+        from sklearn.metrics import silhouette_score
+        return silhouette_score(X_reduced, y)
+
+# Compare reconstruction quality
+pca_error = reconstruction_error(X_scaled, X_pca, 'pca')
+tsne_silhouette = reconstruction_error(X_scaled, X_tsne, 'tsne')
+print(f"PCA reconstruction error: {pca_error:.4f}")
+print(f"t-SNE silhouette score: {tsne_silhouette:.4f}")
+```
+
+## Summary Table
+
+| Method | Linear | Speed | Global Structure | Local Structure | Interpretable |
+|--------|--------|-------|------------------|-----------------|---------------|
+| **PCA** | ✅ | Fast | ✅ | ❌ | ✅ |
+| **t-SNE** | ❌ | Slow | ❌ | ✅ | ❌ |
+| **UMAP** | ❌ | Fast | ⚡ | ✅ | ❌ |
+| **Autoencoder** | ❌ | Medium | ⚡ | ⚡ | ❌ |
+
+## Best Practices
+
+1. **Start with PCA**: Simple, fast, interpretable baseline
+2. **Standardize data**: Especially important for PCA
+3. **Try multiple methods**: Different algorithms reveal different aspects
+4. **Validate results**: Use domain knowledge to interpret embeddings
+5. **Consider computation time**: UMAP >> t-SNE for large datasets
+
+## Conclusion
+
+Dimensionality reduction is essential for understanding high-dimensional data. Choose your method based on:
+
+- **Linear patterns**: Use PCA
+- **Visualization needs**: Use t-SNE or UMAP  
+- **Large datasets**: Use UMAP or PCA
+- **Interpretability**: Use PCA
+
+Remember: the goal isn't just dimension reduction, but gaining insights into your data's underlying structure! 

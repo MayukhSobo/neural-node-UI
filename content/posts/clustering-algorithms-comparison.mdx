@@ -1,0 +1,321 @@
+---
+title: "Clustering Algorithms: K-Means vs DBSCAN vs Hierarchical"
+date: "2024-01-30"
+excerpt: "Compare popular clustering algorithms and understand when to use each. Explore the mathematical foundations and practical implementations of unsupervised learning."
+tags: ["Machine Learning", "Clustering", "Unsupervised Learning", "Algorithms"]
+published: true
+---
+
+# Clustering Algorithms: K-Means vs DBSCAN vs Hierarchical
+
+Clustering is one of the most fundamental unsupervised learning techniques. Let's explore three popular algorithms, understand their mathematical foundations, and learn when to use each.
+
+## K-Means Clustering
+
+K-Means aims to minimize the within-cluster sum of squares (WCSS):
+
+$$J = \sum_{i=1}^{k} \sum_{x \in C_i} ||x - \mu_i||^2$$
+
+Where $\mu_i$ is the centroid of cluster $C_i$.
+
+### Algorithm Steps
+
+1. **Initialize** $k$ centroids randomly
+2. **Assign** each point to the nearest centroid
+3. **Update** centroids to the mean of assigned points
+4. **Repeat** until convergence
+
+### Implementation
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+
+class KMeansFromScratch:
+    def __init__(self, k=3, max_iters=100, random_state=42):
+        self.k = k
+        self.max_iters = max_iters
+        self.random_state = random_state
+    
+    def fit(self, X):
+        np.random.seed(self.random_state)
+        
+        # Initialize centroids
+        self.centroids = X[np.random.choice(X.shape[0], self.k, replace=False)]
+        
+        for _ in range(self.max_iters):
+            # Assign points to closest centroid
+            distances = np.sqrt(((X - self.centroids[:, np.newaxis])**2).sum(axis=2))
+            labels = np.argmin(distances, axis=0)
+            
+            # Update centroids
+            new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(self.k)])
+            
+            # Check convergence
+            if np.allclose(self.centroids, new_centroids):
+                break
+                
+            self.centroids = new_centroids
+        
+        self.labels_ = labels
+        return self
+    
+    def predict(self, X):
+        distances = np.sqrt(((X - self.centroids[:, np.newaxis])**2).sum(axis=2))
+        return np.argmin(distances, axis=0)
+
+# Example usage
+X, _ = make_blobs(n_samples=300, centers=3, random_state=42)
+kmeans = KMeansFromScratch(k=3)
+kmeans.fit(X)
+```
+
+### When to Use K-Means
+- ✅ Spherical, well-separated clusters
+- ✅ Known number of clusters
+- ✅ Similar cluster sizes
+- ❌ Non-spherical clusters
+- ❌ Varying cluster densities
+
+## DBSCAN (Density-Based Spatial Clustering)
+
+DBSCAN groups points that are closely packed while marking outliers in low-density regions.
+
+### Key Concepts
+
+**Core Point**: A point with at least `min_samples` neighbors within `eps` distance
+
+**Border Point**: Not a core point but within `eps` of a core point
+
+**Noise Point**: Neither core nor border point
+
+### Mathematical Foundation
+
+For a point $p$, its $\epsilon$-neighborhood is:
+
+$$N_\epsilon(p) = \{q \in D | \text{dist}(p,q) \leq \epsilon\}$$
+
+### Implementation
+
+```python
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+
+def dbscan_clustering(X, eps=0.5, min_samples=5):
+    """
+    Apply DBSCAN clustering with preprocessing.
+    """
+    # Standardize features
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # Apply DBSCAN
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    labels = dbscan.fit_predict(X_scaled)
+    
+    # Count clusters and noise points
+    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise = list(labels).count(-1)
+    
+    print(f'Estimated number of clusters: {n_clusters}')
+    print(f'Estimated number of noise points: {n_noise}')
+    
+    return labels, dbscan
+
+# Usage
+labels, model = dbscan_clustering(X, eps=0.3, min_samples=10)
+```
+
+### Parameter Selection
+
+Finding optimal `eps` using k-distance plot:
+
+```python
+from sklearn.neighbors import NearestNeighbors
+
+def plot_k_distance(X, k=4):
+    """Plot k-distance graph to find optimal eps."""
+    neighbors = NearestNeighbors(n_neighbors=k)
+    neighbors_fit = neighbors.fit(X)
+    distances, indices = neighbors_fit.kneighbors(X)
+    
+    distances = np.sort(distances[:, k-1], axis=0)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(distances)
+    plt.ylabel(f'{k}-NN Distance')
+    plt.xlabel('Data Points sorted by distance')
+    plt.title('K-distance Graph')
+    plt.grid(True)
+    plt.show()
+    
+    return distances
+
+# Find the "elbow" in this plot for optimal eps
+distances = plot_k_distance(X_scaled, k=4)
+```
+
+### When to Use DBSCAN
+- ✅ Unknown number of clusters
+- ✅ Non-spherical clusters
+- ✅ Varying cluster densities
+- ✅ Outlier detection needed
+- ❌ High-dimensional data
+- ❌ Varying cluster densities
+
+## Hierarchical Clustering
+
+Creates a tree of clusters using either agglomerative (bottom-up) or divisive (top-down) approaches.
+
+### Linkage Criteria
+
+Different ways to measure cluster distance:
+
+**Single Linkage**: $d(C_i, C_j) = \min_{x \in C_i, y \in C_j} d(x,y)$
+
+**Complete Linkage**: $d(C_i, C_j) = \max_{x \in C_i, y \in C_j} d(x,y)$
+
+**Average Linkage**: $d(C_i, C_j) = \frac{1}{|C_i||C_j|} \sum_{x \in C_i} \sum_{y \in C_j} d(x,y)$
+
+**Ward Linkage**: Minimizes within-cluster variance
+
+### Implementation
+
+```python
+from sklearn.cluster import AgglomerativeClustering
+from scipy.cluster.hierarchy import dendrogram, linkage
+from scipy.spatial.distance import pdist
+
+def hierarchical_clustering(X, n_clusters=3, linkage_method='ward'):
+    """
+    Perform hierarchical clustering with visualization.
+    """
+    # Perform clustering
+    clustering = AgglomerativeClustering(
+        n_clusters=n_clusters, 
+        linkage=linkage_method
+    )
+    labels = clustering.fit_predict(X)
+    
+    # Create dendrogram
+    linkage_matrix = linkage(X, method=linkage_method)
+    
+    plt.figure(figsize=(12, 8))
+    dendrogram(linkage_matrix, truncate_mode='level', p=5)
+    plt.title(f'Hierarchical Clustering Dendrogram ({linkage_method} linkage)')
+    plt.xlabel('Sample Index')
+    plt.ylabel('Distance')
+    plt.show()
+    
+    return labels, clustering
+
+# Usage
+labels, model = hierarchical_clustering(X, n_clusters=3, linkage_method='ward')
+```
+
+### When to Use Hierarchical Clustering
+- ✅ Need cluster hierarchy
+- ✅ Don't know optimal number of clusters
+- ✅ Small to medium datasets
+- ✅ Interpretable results needed
+- ❌ Large datasets (O(n³) complexity)
+- ❌ Real-time clustering needed
+
+## Comparison Framework
+
+```python
+def compare_clustering_algorithms(X, true_labels=None):
+    """
+    Compare different clustering algorithms on the same dataset.
+    """
+    from sklearn.metrics import adjusted_rand_score, silhouette_score
+    
+    algorithms = {
+        'K-Means': KMeans(n_clusters=3, random_state=42),
+        'DBSCAN': DBSCAN(eps=0.3, min_samples=10),
+        'Hierarchical': AgglomerativeClustering(n_clusters=3)
+    }
+    
+    results = {}
+    
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    axes = axes.ravel()
+    
+    # Plot original data
+    axes[0].scatter(X[:, 0], X[:, 1], c=true_labels if true_labels is not None else 'blue')
+    axes[0].set_title('Original Data')
+    
+    for i, (name, algorithm) in enumerate(algorithms.items(), 1):
+        # Fit algorithm
+        labels = algorithm.fit_predict(X)
+        
+        # Calculate metrics
+        if true_labels is not None:
+            ari = adjusted_rand_score(true_labels, labels)
+            results[f'{name}_ARI'] = ari
+        
+        # Silhouette score (only for non-noise points)
+        if len(set(labels)) > 1:
+            mask = labels != -1  # Remove noise points for DBSCAN
+            if np.sum(mask) > 1:
+                sil_score = silhouette_score(X[mask], labels[mask])
+                results[f'{name}_Silhouette'] = sil_score
+        
+        # Plot results
+        axes[i].scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis')
+        axes[i].set_title(f'{name}')
+    
+    plt.tight_layout()
+    plt.show()
+    
+    return results
+
+# Generate test data
+X, true_labels = make_blobs(n_samples=300, centers=3, cluster_std=1.5, random_state=42)
+results = compare_clustering_algorithms(X, true_labels)
+print("Clustering Comparison Results:")
+for metric, score in results.items():
+    print(f"{metric}: {score:.3f}")
+```
+
+## Evaluation Metrics
+
+### Internal Metrics (No ground truth needed)
+
+**Silhouette Score**: 
+$$s_i = \frac{b_i - a_i}{\max(a_i, b_i)}$$
+
+Where $a_i$ is mean distance to points in same cluster, $b_i$ is mean distance to nearest cluster.
+
+**Calinski-Harabasz Index**:
+$$CH = \frac{\text{trace}(B_k)}{\text{trace}(W_k)} \cdot \frac{n-k}{k-1}$$
+
+### External Metrics (Ground truth available)
+
+**Adjusted Rand Index**: Corrects for chance grouping
+
+**Normalized Mutual Information**: Measures shared information between clusterings
+
+## Choosing the Right Algorithm
+
+| Algorithm | Best For | Avoid When |
+|-----------|----------|------------|
+| **K-Means** | Spherical clusters, known k | Non-convex shapes, outliers |
+| **DBSCAN** | Irregular shapes, noise | High dimensions, varying densities |
+| **Hierarchical** | Small data, interpretability | Large datasets, real-time |
+
+## Practical Tips
+
+1. **Always visualize** your data first (use PCA/t-SNE for high dimensions)
+2. **Try multiple algorithms** and compare results
+3. **Validate clusters** using domain knowledge
+4. **Consider preprocessing** (scaling, dimensionality reduction)
+5. **Use ensemble methods** for robust clustering
+
+## Conclusion
+
+No single clustering algorithm works best for all scenarios. Understanding the mathematical foundations and practical trade-offs helps you choose the right tool for your specific problem.
+
+The key is to match algorithm assumptions with your data characteristics and business requirements. 

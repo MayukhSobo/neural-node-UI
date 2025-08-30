@@ -1,0 +1,133 @@
+---
+title: "Introduction to Bayesian Statistics: A Different Way of Thinking"
+date: "2024-01-25"
+excerpt: "Explore the fundamentals of Bayesian statistics and how it differs from frequentist approaches. Learn to think probabilistically about uncertainty and evidence."
+tags: ["Statistics", "Bayesian", "Mathematics", "Probability"]
+published: true
+---
+
+# Introduction to Bayesian Statistics: A Different Way of Thinking
+
+Bayesian statistics offers a fundamentally different approach to statistical inference. Instead of treating parameters as fixed but unknown, Bayesian statistics treats them as random variables with probability distributions.
+
+## The Bayesian Framework
+
+At the heart of Bayesian statistics is Bayes' theorem:
+
+$$P(\theta|D) = \frac{P(D|\theta) \cdot P(\theta)}{P(D)}$$
+
+Where:
+- $P(\theta|D)$ is the **posterior** - what we believe about $\theta$ after seeing data $D$
+- $P(D|\theta)$ is the **likelihood** - how probable the data is given $\theta$
+- $P(\theta)$ is the **prior** - what we believed about $\theta$ before seeing data
+- $P(D)$ is the **evidence** - the probability of observing the data
+
+## A Simple Example: Coin Flipping
+
+Suppose we want to estimate the probability $p$ that a coin lands heads. In the Bayesian approach:
+
+### Prior Distribution
+We start with a prior belief. Let's use a Beta distribution:
+
+$$p \sim \text{Beta}(\alpha, \beta)$$
+
+For a fair coin, we might choose $\alpha = \beta = 1$ (uniform prior).
+
+### Likelihood
+For $n$ flips with $k$ heads, the likelihood is:
+
+$$P(D|p) = \binom{n}{k} p^k (1-p)^{n-k}$$
+
+### Posterior Distribution
+The posterior is also a Beta distribution (conjugate prior):
+
+$$p|D \sim \text{Beta}(\alpha + k, \beta + n - k)$$
+
+## Implementation in Python
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+def bayesian_coin_inference(flips, alpha_prior=1, beta_prior=1):
+    """
+    Bayesian inference for coin bias.
+    
+    Args:
+        flips: list of 0s and 1s (0=tails, 1=heads)
+        alpha_prior: prior Beta parameter
+        beta_prior: prior Beta parameter
+    
+    Returns:
+        posterior Beta distribution parameters
+    """
+    heads = sum(flips)
+    tails = len(flips) - heads
+    
+    # Update parameters
+    alpha_post = alpha_prior + heads
+    beta_post = beta_prior + tails
+    
+    return alpha_post, beta_post
+
+# Example usage
+observed_flips = [1, 0, 1, 1, 0, 1, 1, 1, 0, 1]  # 7 heads, 3 tails
+alpha_post, beta_post = bayesian_coin_inference(observed_flips)
+
+# Plot results
+x = np.linspace(0, 1, 1000)
+prior = stats.beta(1, 1)
+posterior = stats.beta(alpha_post, beta_post)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x, prior.pdf(x), label='Prior', linestyle='--')
+plt.plot(x, posterior.pdf(x), label='Posterior', linewidth=2)
+plt.axvline(0.5, color='red', linestyle=':', label='Fair coin')
+plt.xlabel('Probability of Heads')
+plt.ylabel('Density')
+plt.legend()
+plt.title('Bayesian Coin Inference')
+plt.show()
+```
+
+## Credible Intervals
+
+Unlike confidence intervals, Bayesian credible intervals have an intuitive interpretation:
+
+$$P(a < \theta < b | D) = 0.95$$
+
+This means there's a 95% probability that $\theta$ lies between $a$ and $b$ given our data.
+
+```python
+def credible_interval(alpha, beta, confidence=0.95):
+    """Calculate Bayesian credible interval."""
+    lower = (1 - confidence) / 2
+    upper = 1 - lower
+    
+    rv = stats.beta(alpha, beta)
+    return rv.ppf(lower), rv.ppf(upper)
+
+# 95% credible interval for our coin
+lower, upper = credible_interval(alpha_post, beta_post)
+print(f"95% credible interval: [{lower:.3f}, {upper:.3f}]")
+```
+
+## Advantages of Bayesian Approach
+
+1. **Intuitive interpretation**: Probabilities represent degrees of belief
+2. **Incorporates prior knowledge**: Can include expert opinion or historical data
+3. **Handles uncertainty naturally**: Full probability distributions, not just point estimates
+4. **Sequential updating**: Easy to incorporate new data as it arrives
+
+## Challenges
+
+1. **Computational complexity**: Often requires numerical methods (MCMC)
+2. **Prior sensitivity**: Results can depend on prior choice
+3. **Philosophical differences**: Different interpretation of probability
+
+## Conclusion
+
+Bayesian statistics provides a powerful framework for reasoning under uncertainty. While it requires a shift in thinking from frequentist methods, it offers intuitive interpretations and natural ways to incorporate prior knowledge.
+
+In future posts, we'll explore more advanced topics like hierarchical Bayesian models and Markov Chain Monte Carlo methods. 

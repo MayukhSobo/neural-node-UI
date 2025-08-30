@@ -1,0 +1,98 @@
+---
+title: "Welcome to My Data Science Blog!"
+date: "2024-01-01"
+excerpt: "Welcome to my new blog! Learn about the features, LaTeX support, and what you can expect from future content."
+tags: ["Welcome", "Blog", "Data Science"]
+published: true
+---
+
+# Welcome to My Data Science Blog!
+
+Hello and welcome! I'm excited to share this new space where I'll be exploring the fascinating world of data science, machine learning, and mathematics.
+
+## What You'll Find Here
+
+This blog is designed specifically for sharing data science content with mathematical rigor. Here's what makes it special:
+
+### Beautiful Math Rendering
+
+Thanks to KaTeX integration, I can share complex mathematical concepts clearly. For example, here's the probability density function of a normal distribution:
+
+$$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}$$
+
+Or the softmax function used in neural networks:
+
+$$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^{K} e^{x_j}}$$
+
+### Code Examples
+
+I'll be sharing lots of practical implementations. Here's a simple example of implementing gradient descent:
+
+```python
+def gradient_descent(X, y, learning_rate=0.01, epochs=1000):
+    m, n = X.shape
+    theta = np.zeros((n, 1))
+    
+    for i in range(epochs):
+        # Forward pass
+        predictions = X @ theta
+        
+        # Compute cost
+        cost = (1/(2*m)) * np.sum((predictions - y)**2)
+        
+        # Compute gradients
+        gradients = (1/m) * X.T @ (predictions - y)
+        
+        # Update parameters
+        theta -= learning_rate * gradients
+    
+    return theta
+```
+
+### Topics I'll Cover
+
+- **Machine Learning Algorithms**: From linear regression to deep learning
+- **Statistical Methods**: Bayesian inference, hypothesis testing, and more
+- **Mathematical Derivations**: Understanding the theory behind the algorithms
+- **Practical Applications**: Real-world data science projects and case studies
+- **Tools and Techniques**: Best practices for data science workflows
+
+## A Note on Mathematics
+
+Mathematics is the language of data science. Throughout this blog, I'll use LaTeX to present equations clearly and beautifully. Don't worry if you're not comfortable with all the notation – I'll always explain concepts in plain English alongside the mathematical formulations.
+
+For instance, Bayes' theorem, fundamental to machine learning:
+
+$$P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}$$
+
+This simply states that the probability of A given B equals the probability of B given A times the prior probability of A, divided by the probability of B.
+
+## Content Management
+
+This blog uses a file-based CMS built with MDX (Markdown + React). This means:
+
+- ✅ Fast loading and excellent SEO
+- ✅ Easy content creation with Markdown
+- ✅ Version control for all content
+- ✅ LaTeX math rendering
+- ✅ Syntax highlighting for code
+- ✅ Responsive, minimal design
+
+## What's Next?
+
+I'm planning several exciting series:
+
+1. **Machine Learning Fundamentals**: Starting with linear regression and building up to neural networks
+2. **Statistical Thinking**: Exploring statistical concepts crucial for data science
+3. **Practical Projects**: End-to-end data science projects with real datasets
+4. **Mathematical Intuitions**: Making complex mathematical concepts accessible
+
+## Connect with Me
+
+I'd love to hear from fellow data scientists, students, and anyone interested in these topics. Feel free to reach out with questions, suggestions, or just to discuss fascinating problems in data science!
+
+Thank you for visiting, and I hope you find the content valuable. Happy learning!
+
+---
+
+*This blog is built with Next.js, TypeScript, and KaTeX. All mathematical equations are rendered client-side for optimal performance.* 

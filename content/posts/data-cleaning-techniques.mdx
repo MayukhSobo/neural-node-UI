@@ -1,0 +1,709 @@
+---
+title: "Data Cleaning: Turning Messy Data into Gold"
+date: "2024-02-12"
+excerpt: "Learn essential data cleaning techniques to transform raw, messy datasets into high-quality inputs for your machine learning models. Handle missing values, outliers, and inconsistencies like a pro."
+tags: ["Data Cleaning", "Data Preprocessing", "Data Science", "Pandas"]
+published: true
+---
+
+# Data Cleaning: Turning Messy Data into Gold
+
+Data cleaning is often 80% of a data scientist's work. Let's master the essential techniques for transforming messy real-world data into clean, analysis-ready datasets.
+
+## The Reality of Messy Data
+
+Real-world data comes with numerous issues:
+- Missing values
+- Inconsistent formats
+- Duplicate records
+- Outliers and anomalies
+- Inconsistent naming conventions
+- Mixed data types
+
+## Handling Missing Values
+
+### 1. Understanding Missing Data Patterns
+
+Three types of missing data:
+- **MCAR**: Missing Completely At Random
+- **MAR**: Missing At Random (depends on observed data)
+- **MNAR**: Missing Not At Random (depends on unobserved data)
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def analyze_missing_data(df):
+    """Comprehensive missing data analysis."""
+    
+    # Missing value counts
+    missing_counts = df.isnull().sum()
+    missing_percent = (missing_counts / len(df)) * 100
+    
+    missing_df = pd.DataFrame({
+        'Missing_Count': missing_counts,
+        'Missing_Percent': missing_percent
+    }).sort_values('Missing_Percent', ascending=False)
+    
+    print("Missing Data Summary:")
+    print("-" * 40)
+    print(missing_df[missing_df['Missing_Count'] > 0])
+    
+    # Visualize missing patterns
+    plt.figure(figsize=(15, 8))
+    
+    # Missing value heatmap
+    plt.subplot(2, 2, 1)
+    sns.heatmap(df.isnull(), cbar=True, cmap='viridis')
+    plt.title('Missing Value Pattern')
+    
+    # Missing value bar plot
+    plt.subplot(2, 2, 2)
+    missing_df[missing_df['Missing_Count'] > 0]['Missing_Percent'].plot(kind='bar')
+    plt.title('Missing Data Percentage by Column')
+    plt.ylabel('Percentage Missing')
+    plt.xticks(rotation=45)
+    
+    # Missing value correlation
+    plt.subplot(2, 2, 3)
+    missing_corr = df.isnull().corr()
+    sns.heatmap(missing_corr, annot=True, cmap='coolwarm', center=0)
+    plt.title('Missing Value Correlation')
+    
+    # Missing value co-occurrence
+    plt.subplot(2, 2, 4)
+    from itertools import combinations
+    
+    cols_with_missing = missing_df[missing_df['Missing_Count'] > 0].index
+    if len(cols_with_missing) > 1:
+        cooccurrence = {}
+        for col1, col2 in combinations(cols_with_missing, 2):
+            both_missing = df[col1].isnull() & df[col2].isnull()
+            cooccurrence[f"{col1} & {col2}"] = both_missing.sum()
+        
+        if cooccurrence:
+            plt.bar(range(len(cooccurrence)), list(cooccurrence.values()))
+            plt.xticks(range(len(cooccurrence)), list(cooccurrence.keys()), rotation=45)
+            plt.title('Missing Value Co-occurrence')
+            plt.ylabel('Count')
+    
+    plt.tight_layout()
+    plt.show()
+    
+    return missing_df
+
+# Example usage with sample data
+np.random.seed(42)
+sample_data = pd.DataFrame({
+    'age': np.random.normal(35, 10, 1000),
+    'income': np.random.exponential(50000, 1000),
+    'education': np.random.choice(['High School', 'Bachelor', 'Master', 'PhD'], 1000),
+    'experience': np.random.normal(10, 5, 1000),
+    'satisfaction': np.random.randint(1, 6, 1000)
+})
+
+# Introduce missing values
+missing_mask = np.random.random(1000) < 0.1
+sample_data.loc[missing_mask, 'income'] = np.nan
+
+missing_mask = np.random.random(1000) < 0.05
+sample_data.loc[missing_mask, 'education'] = np.nan
+
+missing_analysis = analyze_missing_data(sample_data)
+```
+
+### 2. Missing Value Imputation Strategies
+
+```python
+class MissingValueHandler:
+    def __init__(self):
+        self.strategies = {}
+    
+    def simple_imputation(self, df, strategy='mean'):
+        """Simple imputation strategies."""
+        df_imputed = df.copy()
+        
+        for col in df.columns:
+            if df[col].dtype in ['int64', 'float64']:
+                if strategy == 'mean':
+                    df_imputed[col].fillna(df[col].mean(), inplace=True)
+                elif strategy == 'median':
+                    df_imputed[col].fillna(df[col].median(), inplace=True)
+                elif strategy == 'mode':
+                    df_imputed[col].fillna(df[col].mode()[0], inplace=True)
+            else:
+                # For categorical variables
+                df_imputed[col].fillna(df[col].mode()[0], inplace=True)
+        
+        return df_imputed
+    
+    def advanced_imputation(self, df):
+        """Advanced imputation using iterative methods."""
+        from sklearn.experimental import enable_iterative_imputer
+        from sklearn.impute import IterativeImputer
+        from sklearn.ensemble import RandomForestRegressor
+        
+        # Separate numeric and categorical columns
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        categorical_cols = df.select_dtypes(exclude=[np.number]).columns
+        
+        df_imputed = df.copy()
+        
+        # Iterative imputation for numeric columns
+        if len(numeric_cols) > 0:
+            imputer = IterativeImputer(
+                estimator=RandomForestRegressor(n_estimators=10, random_state=42),
+                random_state=42
+            )
+            df_imputed[numeric_cols] = imputer.fit_transform(df[numeric_cols])
+        
+        # Mode imputation for categorical columns
+        for col in categorical_cols:
+            df_imputed[col].fillna(df[col].mode()[0], inplace=True)
+        
+        return df_imputed
+    
+    def knn_imputation(self, df, n_neighbors=5):
+        """KNN-based imputation."""
+        from sklearn.impute import KNNImputer
+        from sklearn.preprocessing import LabelEncoder
+        
+        df_encoded = df.copy()
+        encoders = {}
+        
+        # Encode categorical variables
+        for col in df.select_dtypes(exclude=[np.number]).columns:
+            le = LabelEncoder()
+            df_encoded[col] = le.fit_transform(df[col].astype(str))
+            encoders[col] = le
+        
+        # Apply KNN imputation
+        imputer = KNNImputer(n_neighbors=n_neighbors)
+        df_imputed = pd.DataFrame(
+            imputer.fit_transform(df_encoded),
+            columns=df.columns,
+            index=df.index
+        )
+        
+        # Decode categorical variables
+        for col, encoder in encoders.items():
+            df_imputed[col] = encoder.inverse_transform(df_imputed[col].astype(int))
+        
+        return df_imputed
+
+# Usage
+handler = MissingValueHandler()
+
+# Compare different strategies
+simple_mean = handler.simple_imputation(sample_data, strategy='mean')
+advanced = handler.advanced_imputation(sample_data)
+knn_imputed = handler.knn_imputation(sample_data, n_neighbors=5)
+```
+
+## Outlier Detection and Treatment
+
+### 1. Statistical Methods
+
+```python
+class OutlierDetector:
+    def __init__(self):
+        self.methods = {}
+    
+    def iqr_method(self, df, columns=None, factor=1.5):
+        """Detect outliers using Interquartile Range."""
+        if columns is None:
+            columns = df.select_dtypes(include=[np.number]).columns
+        
+        outliers = pd.DataFrame(index=df.index)
+        
+        for col in columns:
+            Q1 = df[col].quantile(0.25)
+            Q3 = df[col].quantile(0.75)
+            IQR = Q3 - Q1
+            
+            lower_bound = Q1 - factor * IQR
+            upper_bound = Q3 + factor * IQR
+            
+            outliers[col] = (df[col] < lower_bound) | (df[col] > upper_bound)
+        
+        return outliers
+    
+    def z_score_method(self, df, columns=None, threshold=3):
+        """Detect outliers using Z-score."""
+        if columns is None:
+            columns = df.select_dtypes(include=[np.number]).columns
+        
+        outliers = pd.DataFrame(index=df.index)
+        
+        for col in columns:
+            z_scores = np.abs((df[col] - df[col].mean()) / df[col].std())
+            outliers[col] = z_scores > threshold
+        
+        return outliers
+    
+    def isolation_forest_method(self, df, contamination=0.1):
+        """Detect outliers using Isolation Forest."""
+        from sklearn.ensemble import IsolationForest
+        
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        X = df[numeric_cols]
+        
+        iso_forest = IsolationForest(contamination=contamination, random_state=42)
+        outlier_labels = iso_forest.fit_predict(X)
+        
+        return outlier_labels == -1
+    
+    def visualize_outliers(self, df, outliers_df):
+        """Visualize outlier detection results."""
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        n_cols = len(numeric_cols)
+        
+        fig, axes = plt.subplots(2, (n_cols + 1) // 2, figsize=(15, 8))
+        axes = axes.ravel()
+        
+        for i, col in enumerate(numeric_cols):
+            # Box plot with outliers highlighted
+            axes[i].boxplot(df[col].dropna())
+            
+            # Highlight outliers
+            if col in outliers_df.columns:
+                outlier_mask = outliers_df[col]
+                axes[i].scatter(
+                    np.ones(outlier_mask.sum()) + np.random.normal(0, 0.1, outlier_mask.sum()),
+                    df.loc[outlier_mask, col],
+                    color='red', alpha=0.6, s=20
+                )
+            
+            axes[i].set_title(f'{col} - Outliers in Red')
+            axes[i].grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.show()
+
+# Usage
+detector = OutlierDetector()
+
+# Apply different methods
+iqr_outliers = detector.iqr_method(sample_data)
+z_score_outliers = detector.z_score_method(sample_data, threshold=2.5)
+iso_forest_outliers = detector.isolation_forest_method(sample_data)
+
+print("Outlier Detection Summary:")
+print("-" * 40)
+print(f"IQR method: {iqr_outliers.sum().sum()} outliers")
+print(f"Z-score method: {z_score_outliers.sum().sum()} outliers")
+print(f"Isolation Forest: {iso_forest_outliers.sum()} outliers")
+
+detector.visualize_outliers(sample_data, iqr_outliers)
+```
+
+## Data Type Consistency
+
+```python
+def clean_data_types(df):
+    """Clean and standardize data types."""
+    df_clean = df.copy()
+    
+    # Convert string representations of numbers
+    for col in df.columns:
+        if df[col].dtype == 'object':
+            # Try to convert to numeric
+            numeric_version = pd.to_numeric(df[col], errors='coerce')
+            
+            # If most values are numeric, convert the column
+            non_null_numeric = numeric_version.dropna()
+            if len(non_null_numeric) / len(df) > 0.8:
+                df_clean[col] = numeric_version
+                print(f"Converted {col} to numeric")
+    
+    # Date parsing
+    for col in df.columns:
+        if 'date' in col.lower() or 'time' in col.lower():
+            try:
+                df_clean[col] = pd.to_datetime(df[col], errors='coerce')
+                print(f"Converted {col} to datetime")
+            except:
+                pass
+    
+    # Category optimization
+    for col in df.select_dtypes(include=['object']).columns:
+        if df[col].nunique() / len(df) < 0.5:  # If less than 50% unique values
+            df_clean[col] = df[col].astype('category')
+            print(f"Converted {col} to category")
+    
+    return df_clean
+
+# Apply data type cleaning
+sample_data_clean = clean_data_types(sample_data)
+print(f"\nMemory usage before: {sample_data.memory_usage(deep=True).sum() / 1024:.2f} KB")
+print(f"Memory usage after: {sample_data_clean.memory_usage(deep=True).sum() / 1024:.2f} KB")
+```
+
+## String Cleaning and Standardization
+
+```python
+class StringCleaner:
+    def __init__(self):
+        self.cleaning_functions = []
+    
+    def clean_text_column(self, series):
+        """Clean text data comprehensively."""
+        # Make a copy
+        cleaned = series.copy()
+        
+        # Basic cleaning
+        cleaned = cleaned.str.strip()  # Remove leading/trailing spaces
+        cleaned = cleaned.str.lower()  # Lowercase
+        
+        # Handle multiple spaces
+        cleaned = cleaned.str.replace(r'\s+', ' ', regex=True)
+        
+        # Remove special characters (keep alphanumeric and spaces)
+        cleaned = cleaned.str.replace(r'[^a-zA-Z0-9\s]', '', regex=True)
+        
+        # Handle empty strings
+        cleaned = cleaned.replace('', np.nan)
+        
+        return cleaned
+    
+    def standardize_categories(self, series, mapping=None):
+        """Standardize categorical values."""
+        if mapping is None:
+            # Create automatic mapping for common variations
+            mapping = {}
+            unique_values = series.dropna().unique()
+            
+            for value in unique_values:
+                clean_value = str(value).strip().lower()
+                
+                # Common standardizations
+                if clean_value in ['yes', 'y', '1', 'true', 't']:
+                    mapping[value] = 'Yes'
+                elif clean_value in ['no', 'n', '0', 'false', 'f']:
+                    mapping[value] = 'No'
+                elif clean_value in ['male', 'm', 'man']:
+                    mapping[value] = 'Male'
+                elif clean_value in ['female', 'f', 'woman']:
+                    mapping[value] = 'Female'
+                else:
+                    # Title case for other values
+                    mapping[value] = clean_value.title()
+        
+        return series.map(mapping)
+    
+    def clean_phone_numbers(self, series):
+        """Standardize phone number format."""
+        # Remove all non-digit characters
+        cleaned = series.str.replace(r'[^\d]', '', regex=True)
+        
+        # Format as (XXX) XXX-XXXX for 10-digit numbers
+        def format_phone(phone):
+            if pd.isna(phone) or len(str(phone)) != 10:
+                return phone
+            phone = str(phone)
+            return f"({phone[:3]}) {phone[3:6]}-{phone[6:]}"
+        
+        return cleaned.apply(format_phone)
+
+# Usage
+cleaner = StringCleaner()
+
+# Example messy data
+messy_data = pd.DataFrame({
+    'name': ['  John Doe  ', 'jane@smith', 'BOB-JOHNSON', 'mary o\'connor'],
+    'gender': ['M', 'female', 'MALE', 'F'],
+    'phone': ['(555) 123-4567', '555.987.6543', '5551234567', '555-111-2222']
+})
+
+cleaned_data = messy_data.copy()
+cleaned_data['name'] = cleaner.clean_text_column(messy_data['name'])
+cleaned_data['gender'] = cleaner.standardize_categories(messy_data['gender'])
+cleaned_data['phone'] = cleaner.clean_phone_numbers(messy_data['phone'])
+
+print("Before cleaning:")
+print(messy_data)
+print("\nAfter cleaning:")
+print(cleaned_data)
+```
+
+## Duplicate Detection and Removal
+
+```python
+class DuplicateHandler:
+    def __init__(self):
+        pass
+    
+    def find_exact_duplicates(self, df):
+        """Find exact duplicate rows."""
+        duplicates = df.duplicated()
+        print(f"Found {duplicates.sum()} exact duplicate rows")
+        return df[duplicates]
+    
+    def find_fuzzy_duplicates(self, df, columns, threshold=0.8):
+        """Find fuzzy duplicates using string similarity."""
+        from difflib import SequenceMatcher
+        
+        def similarity(a, b):
+            return SequenceMatcher(None, str(a), str(b)).ratio()
+        
+        duplicates = []
+        
+        for col in columns:
+            if df[col].dtype == 'object':
+                values = df[col].dropna().unique()
+                
+                for i, val1 in enumerate(values):
+                    for val2 in values[i+1:]:
+                        if similarity(val1, val2) > threshold:
+                            duplicates.append((col, val1, val2, similarity(val1, val2)))
+        
+        return duplicates
+    
+    def remove_duplicates(self, df, subset=None, keep='first'):
+        """Remove duplicates with logging."""
+        initial_count = len(df)
+        df_clean = df.drop_duplicates(subset=subset, keep=keep)
+        removed_count = initial_count - len(df_clean)
+        
+        print(f"Removed {removed_count} duplicate rows")
+        print(f"Remaining rows: {len(df_clean)}")
+        
+        return df_clean
+
+# Usage
+dup_handler = DuplicateHandler()
+
+# Add some duplicates to sample data
+sample_with_dups = pd.concat([sample_data, sample_data.iloc[:50]], ignore_index=True)
+
+exact_dups = dup_handler.find_exact_duplicates(sample_with_dups)
+clean_data = dup_handler.remove_duplicates(sample_with_dups)
+```
+
+## Comprehensive Data Cleaning Pipeline
+
+```python
+class DataCleaningPipeline:
+    def __init__(self):
+        self.cleaning_report = {}
+    
+    def clean_dataset(self, df, target_column=None):
+        """Complete data cleaning pipeline."""
+        print("Starting data cleaning pipeline...")
+        print("=" * 50)
+        
+        initial_shape = df.shape
+        df_clean = df.copy()
+        
+        # 1. Basic info
+        print(f"Initial dataset shape: {initial_shape}")
+        
+        # 2. Handle duplicates
+        print("\n1. Removing duplicates...")
+        initial_rows = len(df_clean)
+        df_clean = df_clean.drop_duplicates()
+        print(f"   Removed {initial_rows - len(df_clean)} duplicate rows")
+        
+        # 3. Data type optimization
+        print("\n2. Optimizing data types...")
+        df_clean = clean_data_types(df_clean)
+        
+        # 4. Handle missing values
+        print("\n3. Handling missing values...")
+        missing_before = df_clean.isnull().sum().sum()
+        
+        # Simple strategy for demonstration
+        handler = MissingValueHandler()
+        df_clean = handler.simple_imputation(df_clean, strategy='median')
+        
+        missing_after = df_clean.isnull().sum().sum()
+        print(f"   Missing values before: {missing_before}")
+        print(f"   Missing values after: {missing_after}")
+        
+        # 5. Outlier detection (but not removal for demo)
+        print("\n4. Detecting outliers...")
+        detector = OutlierDetector()
+        outliers = detector.iqr_method(df_clean)
+        total_outliers = outliers.sum().sum()
+        print(f"   Detected {total_outliers} outliers across all columns")
+        
+        # 6. String cleaning
+        print("\n5. Cleaning string columns...")
+        cleaner = StringCleaner()
+        string_cols = df_clean.select_dtypes(include=['object']).columns
+        
+        for col in string_cols:
+            df_clean[col] = cleaner.clean_text_column(df_clean[col])
+        
+        # 7. Final report
+        final_shape = df_clean.shape
+        print(f"\nCleaning complete!")
+        print(f"Final dataset shape: {final_shape}")
+        print(f"Rows removed: {initial_shape[0] - final_shape[0]}")
+        print(f"Data quality score: {self.calculate_quality_score(df_clean):.2f}/10")
+        
+        return df_clean
+    
+    def calculate_quality_score(self, df):
+        """Calculate a data quality score (0-10)."""
+        score = 10
+        
+        # Deduct for missing values
+        missing_ratio = df.isnull().sum().sum() / (df.shape[0] * df.shape[1])
+        score -= missing_ratio * 3
+        
+        # Deduct for potential outliers
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            outlier_detector = OutlierDetector()
+            outliers = outlier_detector.iqr_method(df, numeric_cols)
+            outlier_ratio = outliers.sum().sum() / (df.shape[0] * len(numeric_cols))
+            score -= outlier_ratio * 2
+        
+        # Deduct for inconsistent formatting
+        string_cols = df.select_dtypes(include=['object']).columns
+        inconsistency_penalty = 0
+        for col in string_cols:
+            unique_values = df[col].dropna().unique()
+            if len(unique_values) > 0:
+                # Check for case inconsistencies
+                lower_unique = set(str(v).lower() for v in unique_values)
+                if len(lower_unique) < len(unique_values) * 0.9:
+                    inconsistency_penalty += 0.5
+        
+        score -= inconsistency_penalty
+        
+        return max(0, score)
+
+# Apply complete pipeline
+pipeline = DataCleaningPipeline()
+cleaned_sample = pipeline.clean_dataset(sample_data)
+
+# Compare before and after
+print("\nBefore vs After Comparison:")
+print("-" * 40)
+print("Original data info:")
+print(sample_data.info())
+print("\nCleaned data info:")
+print(cleaned_sample.info())
+```
+
+## Data Validation Framework
+
+```python
+class DataValidator:
+    def __init__(self):
+        self.rules = []
+    
+    def add_rule(self, rule_name, condition, severity='warning'):
+        """Add a validation rule."""
+        self.rules.append({
+            'name': rule_name,
+            'condition': condition,
+            'severity': severity
+        })
+    
+    def validate_dataset(self, df):
+        """Run all validation rules on dataset."""
+        results = []
+        
+        for rule in self.rules:
+            violations = ~rule['condition'](df)
+            violation_count = violations.sum()
+            
+            results.append({
+                'rule': rule['name'],
+                'violations': violation_count,
+                'severity': rule['severity'],
+                'percentage': (violation_count / len(df)) * 100
+            })
+            
+            if violation_count > 0:
+                print(f"{rule['severity'].upper()}: {rule['name']}")
+                print(f"  Violations: {violation_count} ({violation_count/len(df)*100:.1f}%)")
+        
+        return pd.DataFrame(results)
+
+# Example validation rules
+validator = DataValidator()
+
+# Add validation rules
+validator.add_rule(
+    "Age should be between 0 and 120",
+    lambda df: (df['age'] >= 0) & (df['age'] <= 120),
+    'error'
+)
+
+validator.add_rule(
+    "Income should be positive",
+    lambda df: df['income'] >= 0,
+    'error'
+)
+
+validator.add_rule(
+    "Experience should not exceed age",
+    lambda df: df['experience'] <= df['age'],
+    'warning'
+)
+
+# Run validation
+validation_results = validator.validate_dataset(cleaned_sample)
+print("\nValidation Results:")
+print(validation_results)
+```
+
+## Best Practices Summary
+
+### 1. Data Cleaning Checklist
+- [ ] Remove exact duplicates
+- [ ] Handle missing values appropriately
+- [ ] Detect and treat outliers
+- [ ] Standardize data formats
+- [ ] Validate data consistency
+- [ ] Optimize data types
+- [ ] Document cleaning decisions
+
+### 2. Common Pitfalls
+- **Data leakage**: Don't use future information
+- **Over-cleaning**: Don't remove too much valid variation
+- **Ignoring domain knowledge**: Use business rules
+- **No documentation**: Keep track of transformations
+
+### 3. Quality Metrics
+```python
+def data_quality_report(df_original, df_cleaned):
+    """Generate comprehensive data quality report."""
+    
+    report = {
+        'original_shape': df_original.shape,
+        'cleaned_shape': df_cleaned.shape,
+        'rows_removed': df_original.shape[0] - df_cleaned.shape[0],
+        'missing_values_before': df_original.isnull().sum().sum(),
+        'missing_values_after': df_cleaned.isnull().sum().sum(),
+        'memory_before_mb': df_original.memory_usage(deep=True).sum() / 1024 / 1024,
+        'memory_after_mb': df_cleaned.memory_usage(deep=True).sum() / 1024 / 1024
+    }
+    
+    print("Data Quality Report")
+    print("=" * 50)
+    for key, value in report.items():
+        print(f"{key.replace('_', ' ').title()}: {value}")
+    
+    return report
+
+quality_report = data_quality_report(sample_data, cleaned_sample)
+```
+
+## Conclusion
+
+Data cleaning is a critical skill that directly impacts model performance. Remember:
+
+1. **Understand your data**: Explore before cleaning
+2. **Document everything**: Keep track of decisions and transformations  
+3. **Validate results**: Check that cleaning makes sense
+4. **Iterate**: Data cleaning is rarely a one-time process
+5. **Preserve information**: Don't over-clean your data
+
+Clean data is the foundation of successful machine learning projects. Invest time here, and your models will thank you later! 
