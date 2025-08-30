@@ -53,7 +53,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
               margin: '0 0 0.5rem 0',
               letterSpacing: '-0.02em'
             }}>
-              Posts tagged "{decodeURIComponent(tag)}"
+              Posts tagged &ldquo;{decodeURIComponent(tag)}&rdquo;
             </h1>
             <p style={{ 
               color: '#6b7280', 
@@ -95,7 +95,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
       ) : (
         <div style={{ textAlign: 'center', padding: '4rem 0' }}>
           <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>
-            No posts found with the tag "{decodeURIComponent(tag)}".
+            No posts found with the tag &ldquo;{decodeURIComponent(tag)}&rdquo;.
           </p>
           <Link 
             href="/" 
@@ -115,7 +115,7 @@ export default async function TagPage({ params, searchParams }: TagPageProps) {
 
 // Generate static params for all unique tags
 export async function generateStaticParams() {
-  const posts = getAllPosts()
+  const posts = await getAllPosts()
   const allTags = posts.flatMap(post => post.tags || [])
   const uniqueTags = Array.from(new Set(allTags))
   
@@ -127,7 +127,7 @@ export async function generateStaticParams() {
 // Generate metadata for each tag page
 export async function generateMetadata({ params }: { params: { tag: string } }) {
   const tag = decodeURIComponent(params.tag)
-  const posts = getPaginatedPostsByTag(tag, 1, 100) // Get all posts for count
+  const posts = await getPaginatedPostsByTag(tag, 1, 100) // Get all posts for count
   
   return {
     title: `Posts tagged "${tag}" - Data Blog`,

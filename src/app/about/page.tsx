@@ -8,7 +8,7 @@ export default function AboutPage() {
         
         <div className="prose-custom">
           <p style={{ fontSize: '1.125rem', color: '#374151', marginBottom: '1.5rem' }}>
-            Welcome to my data science blog! I'm a passionate data scientist who loves exploring 
+            Welcome to my data science blog! I&apos;m a passionate data scientist who loves exploring 
             the fascinating world of machine learning, statistics, and mathematical modeling.
           </p>
           
@@ -26,7 +26,7 @@ export default function AboutPage() {
           
           <p>
             All mathematical equations are rendered using LaTeX for clear and beautiful presentation. 
-            Whether you're a fellow data scientist, student, or just curious about the field, 
+            Whether you&apos;re a fellow data scientist, student, or just curious about the field, 
             I hope you find something valuable here.
           </p>
           

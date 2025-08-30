@@ -50,7 +50,7 @@ function Code({ children, className }: CodeProps) {
 
 export const MDXComponents = {
   code: Code,
-  h1: (props: any) => (
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 
       style={{ 
         fontSize: '2.25rem', 
@@ -64,7 +64,7 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  h2: (props: any) => (
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2 
       style={{ 
         fontSize: '1.75rem', 
@@ -78,7 +78,7 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  h3: (props: any) => (
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h3 
       style={{ 
         fontSize: '1.375rem', 
@@ -91,7 +91,7 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  p: (props: any) => (
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p 
       style={{ 
         marginBottom: '1.25rem', 
@@ -102,7 +102,7 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  ul: (props: any) => (
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
     <ul 
       style={{ 
         marginBottom: '1.25rem', 
@@ -112,7 +112,7 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  ol: (props: any) => (
+  ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
     <ol 
       style={{ 
         marginBottom: '1.25rem', 
@@ -122,10 +122,10 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  li: (props: any) => (
+  li: (props: React.HTMLAttributes<HTMLLIElement>) => (
     <li style={{ marginBottom: '0.5rem', lineHeight: '1.6' }} {...props} />
   ),
-  blockquote: (props: any) => (
+  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote 
       style={{ 
         borderLeft: '4px solid #d1d5db', 
@@ -139,7 +139,7 @@ export const MDXComponents = {
       {...props} 
     />
   ),
-  a: (props: any) => (
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a 
       style={{ 
         color: '#2563eb', 

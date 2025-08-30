@@ -14,9 +14,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     posts,
     currentPage: validatedPage,
     totalPages,
-    totalPosts,
-    hasNextPage,
-    hasPrevPage
+    totalPosts
   } = await getHomePaginatedPosts(currentPage)
 
   return (
