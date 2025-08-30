@@ -17,6 +17,9 @@ export async function generateStaticParams() {
   }))
 }
 
+// Enable dynamic params for posts not generated at build time
+export const dynamicParams = true
+
 export async function generateMetadata({ params }: PostPageProps) {
   const { slug } = await params
   try {

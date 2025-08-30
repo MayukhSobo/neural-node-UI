@@ -48,7 +48,7 @@ async function fetchPostsFromGitHub(): Promise<BlogPost[]> {
         })
       },
       // Cache for 5 minutes during development
-      next: { revalidate: 300 }
+      next: { revalidate: 60 }
     })
 
     if (!response.ok) {
