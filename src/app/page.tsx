@@ -10,14 +10,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = await searchParams
   const currentPage = parseInt(resolvedSearchParams.page || '1', 10)
   
-  const { 
-    posts, 
+    const {
+    posts,
     currentPage: validatedPage,
     totalPages,
     totalPosts,
     hasNextPage,
-    hasPrevPage 
-  } = getHomePaginatedPosts(currentPage)
+    hasPrevPage
+  } = await getHomePaginatedPosts(currentPage)
 
   return (
     <div className="container-custom" style={{ paddingTop: '7rem', paddingBottom: '3rem' }}>

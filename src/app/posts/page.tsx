@@ -17,7 +17,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
     currentPage: validatedPage,
     totalPages,
     totalPosts 
-  } = getPaginatedPosts(currentPage, postsPerPage)
+  } = await getPaginatedPosts(currentPage, postsPerPage)
 
   return (
     <div className="container-custom" style={{ paddingTop: '7rem', paddingBottom: '3rem' }}>

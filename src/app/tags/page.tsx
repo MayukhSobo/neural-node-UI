@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { getAllPosts } from '@/lib/posts'
 
-export default function TagsPage() {
-  const posts = getAllPosts()
+export default async function TagsPage() {
+  const posts = await getAllPosts()
   
   // Count posts by tag
   const tagCounts = posts.reduce((acc, post) => {

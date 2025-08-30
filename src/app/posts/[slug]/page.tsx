@@ -11,7 +11,7 @@ interface PostPageProps {
 }
 
 export async function generateStaticParams() {
-  const posts = getAllPosts()
+  const posts = await getAllPosts()
   return posts.map((post) => ({
     slug: post.slug,
   }))
@@ -20,7 +20,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PostPageProps) {
   const { slug } = await params
   try {
-    const post = getPostBySlug(slug)
+    const post = await getPostBySlug(slug)
+    if (!post) {
+      return {
+        title: 'Post Not Found - Data Blog',
+        description: 'The requested blog post could not be found.',
+      }
+    }
     return {
       title: `${post.title} - Data Blog`,
       description: post.excerpt,
@@ -38,7 +44,11 @@ export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params
   
   try {
-    const post = getPostBySlug(slug)
+    const post = await getPostBySlug(slug)
+    
+    if (!post) {
+      notFound()
+    }
     
     return (
       <div className="container-custom" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
