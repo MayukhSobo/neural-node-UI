@@ -8,7 +8,7 @@ interface TagPageProps {
   searchParams: { page?: string }
 }
 
-export default function TagPage({ params, searchParams }: TagPageProps) {
+export default async function TagPage({ params, searchParams }: TagPageProps) {
   const { tag } = params
   const currentPage = parseInt(searchParams.page || '1', 10)
   const postsPerPage = 6
@@ -18,7 +18,7 @@ export default function TagPage({ params, searchParams }: TagPageProps) {
     currentPage: validatedPage,
     totalPages,
     totalPosts 
-  } = getPaginatedPostsByTag(decodeURIComponent(tag), currentPage, postsPerPage)
+  } = await getPaginatedPostsByTag(decodeURIComponent(tag), currentPage, postsPerPage)
 
   return (
     <div className="container-custom" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>

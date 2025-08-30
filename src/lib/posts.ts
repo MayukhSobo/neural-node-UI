@@ -209,4 +209,30 @@ export async function getPostsByTag(tag: string): Promise<BlogPost[]> {
       postTag.toLowerCase() === tag.toLowerCase()
     )
   )
+}
+
+export async function getPaginatedPostsByTag(tag: string, page: number = 1, postsPerPage: number = 6): Promise<PaginatedPosts> {
+  const allTagPosts = await getPostsByTag(tag)
+  const totalPosts = allTagPosts.length
+  const totalPages = Math.ceil(totalPosts / postsPerPage)
+  
+  // Ensure page is within valid range
+  const currentPage = Math.max(1, Math.min(page, totalPages))
+  
+  // Calculate start and end indices
+  const startIndex = (currentPage - 1) * postsPerPage
+  const endIndex = startIndex + postsPerPage
+  
+  // Get posts for current page
+  const posts = allTagPosts.slice(startIndex, endIndex)
+  
+  return {
+    posts,
+    currentPage,
+    totalPages,
+    totalPosts,
+    hasNextPage: currentPage < totalPages,
+    hasPrevPage: currentPage > 1,
+    postsPerPage
+  }
 } 
