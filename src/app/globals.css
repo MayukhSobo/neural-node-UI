@@ -583,6 +583,11 @@ body {
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* Post page tags horizontal scrolling */
+.post-tags-scrollable::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* Unified tag styling */
 .tag {
   display: inline-block;

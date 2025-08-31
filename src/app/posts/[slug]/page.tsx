@@ -86,13 +86,20 @@ export default async function PostPage({ params }: PostPageProps) {
             {post.tags && post.tags.length > 0 && (
               <div style={{ 
                 display: 'flex', 
-                flexWrap: 'wrap', 
+                overflowX: 'auto',
+                overflowY: 'hidden',
                 gap: '0.5rem', 
                 justifyContent: 'center',
-                marginBottom: '2rem' 
-              }}>
+                marginBottom: '2rem',
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                paddingBottom: '0.25rem'
+              }}
+              className="post-tags-scrollable">
                 {post.tags.map((tag) => (
-                  <span key={tag} className="tag-featured">
+                  <span key={tag} className="tag-featured" style={{ flexShrink: 0 }}>
                     {tag}
                   </span>
                 ))}
