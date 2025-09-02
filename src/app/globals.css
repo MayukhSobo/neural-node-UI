@@ -847,11 +847,20 @@ body {
   user-select: none;
   /* Desktop mouse scrolling */
   cursor: grab;
+  /* Enable mouse wheel scrolling */
+  scrollbar-width: none;
+  /* Ensure it's interactive */
+  pointer-events: auto;
 }
 
 .card-tags-scrollable:active,
 .post-tags-scrollable:active {
   cursor: grabbing;
+}
+
+.card-tags-scrollable:hover,
+.post-tags-scrollable:hover {
+  cursor: grab;
 }
 
 .card-tags-scrollable::-webkit-scrollbar,

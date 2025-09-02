@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { format } from "date-fns";
 import { BlogPost } from "@/lib/posts";
+import { useEffect, useRef } from "react";
 
 interface PostCardProps {
   post: BlogPost;
@@ -22,9 +25,50 @@ function getUniqueTags(tags: string[]): string[] {
 export default function PostCard({ post, featured = false }: PostCardProps) {
   const cardClass = featured ? "card-featured" : "card-minimal";
   const titleClass = featured ? "card-title-featured" : "card-title-regular";
+  const tagsRef = useRef<HTMLDivElement>(null);
 
   // Get all unique tags for this post (no limit)
   const uniqueTags = getUniqueTags(post.tags || []);
+
+  useEffect(() => {
+    const tagsElement = tagsRef.current;
+    if (!tagsElement) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      tagsElement.scrollLeft += e.deltaY;
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return; // Only left click
+
+      const startX = e.pageX - tagsElement.offsetLeft;
+      const scrollLeft = tagsElement.scrollLeft;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        e.preventDefault();
+        const x = e.pageX - tagsElement.offsetLeft;
+        const walk = (x - startX) * 2;
+        tagsElement.scrollLeft = scrollLeft - walk;
+      };
+
+      const handleMouseUp = () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    tagsElement.addEventListener("wheel", handleWheel, { passive: false });
+    tagsElement.addEventListener("mousedown", handleMouseDown);
+
+    return () => {
+      tagsElement.removeEventListener("wheel", handleWheel);
+      tagsElement.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, []);
 
   return (
     <article className={cardClass}>
@@ -124,6 +168,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
         {uniqueTags.length > 0 && (
           <div className="card-content-footer">
             <div
+              ref={tagsRef}
               className="card-tags-scrollable"
               style={{
                 scrollbarWidth: "none",
