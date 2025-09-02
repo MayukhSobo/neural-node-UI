@@ -95,7 +95,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
                   color: "#2d3748",
                   lineHeight: "1.3",
                   letterSpacing: "-0.01em",
-                  margin: 0,
+                  margin: featured ? "2rem 0 0 0" : "0",
                   display: "-webkit-box",
                   WebkitBoxOrient: "vertical",
                   WebkitLineClamp: 2,
