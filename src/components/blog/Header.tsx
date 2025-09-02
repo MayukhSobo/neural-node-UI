@@ -150,7 +150,12 @@ export default function Header() {
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
               style={{
-                backgroundColor: isDark ? "#e2e8f0" : "#1f2937",
+                backgroundColor:
+                  isDark && isScrolled
+                    ? "#1f2937"
+                    : isDark
+                    ? "#e2e8f0"
+                    : "#1f2937",
                 width: "100%",
                 height: "3px",
                 borderRadius: "2px",
@@ -163,7 +168,12 @@ export default function Header() {
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
               style={{
-                backgroundColor: isDark ? "#e2e8f0" : "#1f2937",
+                backgroundColor:
+                  isDark && isScrolled
+                    ? "#1f2937"
+                    : isDark
+                    ? "#e2e8f0"
+                    : "#1f2937",
                 width: "100%",
                 height: "3px",
                 borderRadius: "2px",
@@ -176,7 +186,12 @@ export default function Header() {
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
               style={{
-                backgroundColor: isDark ? "#e2e8f0" : "#1f2937",
+                backgroundColor:
+                  isDark && isScrolled
+                    ? "#1f2937"
+                    : isDark
+                    ? "#e2e8f0"
+                    : "#1f2937",
                 width: "100%",
                 height: "3px",
                 borderRadius: "2px",
