@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/blog/Header";
 import Footer from "@/components/blog/Footer";
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-primary",
   display: "swap",
   preload: true,
-  fallback: ["sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -42,7 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={inter.variable}
+        className={montserrat.className}
         style={{
           WebkitFontSmoothing: "antialiased",
           MozOsxFontSmoothing: "grayscale",
