@@ -149,16 +149,40 @@ export default function Header() {
               className={`hamburger-line ${
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
+              style={{
+                backgroundColor: isDark ? "#e2e8f0" : "#1f2937",
+                width: "100%",
+                height: "3px",
+                borderRadius: "2px",
+                transition: "all 0.3s ease",
+                transformOrigin: "center",
+              }}
             ></span>
             <span
               className={`hamburger-line ${
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
+              style={{
+                backgroundColor: isDark ? "#e2e8f0" : "#1f2937",
+                width: "100%",
+                height: "3px",
+                borderRadius: "2px",
+                transition: "all 0.3s ease",
+                transformOrigin: "center",
+              }}
             ></span>
             <span
               className={`hamburger-line ${
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
+              style={{
+                backgroundColor: isDark ? "#e2e8f0" : "#1f2937",
+                width: "100%",
+                height: "3px",
+                borderRadius: "2px",
+                transition: "all 0.3s ease",
+                transformOrigin: "center",
+              }}
             ></span>
           </button>
         </div>
