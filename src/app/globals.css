@@ -633,6 +633,7 @@ body {
   bottom: 0;
   z-index: 1;
   text-decoration: none;
+  pointer-events: auto;
 }
 
 /* Ensure title is above the overlay */
@@ -644,6 +645,23 @@ body {
 .card-title a {
   position: relative;
   z-index: 3;
+}
+
+/* Ensure tags area is above overlay and scrollable */
+.card-content-footer {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.card-tags-scrollable {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.card-tags-scrollable:active {
+  cursor: grabbing;
 }
 
 .card-minimal {
@@ -764,10 +782,13 @@ body {
   margin: -0.25rem 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-
-  /* Hide scrollbar */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  align-items: center;
+  overscroll-behavior-x: contain;
 }
 
 .card-tags-scrollable::-webkit-scrollbar {
@@ -775,13 +796,76 @@ body {
 }
 
 /* Post page tags horizontal scrolling */
+.post-tags-scrollable {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  align-items: center;
+  overscroll-behavior-x: contain;
+}
+
 .post-tags-scrollable::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Unified tag styling */
-.tag {
-  display: inline-block;
+/* Enhanced tag scrolling for all devices */
+.card-tags-scrollable,
+.post-tags-scrollable {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+  margin: -0.25rem 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  align-items: center;
+  overscroll-behavior-x: contain;
+  /* Additional properties for better cross-browser support */
+  -webkit-scrollbar-width: none;
+  -webkit-scrollbar-height: none;
+  /* Ensure scrolling works on all devices */
+  touch-action: pan-x;
+  /* Prevent text selection during scroll */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Desktop mouse scrolling */
+  cursor: grab;
+}
+
+.card-tags-scrollable:active,
+.post-tags-scrollable:active {
+  cursor: grabbing;
+}
+
+.card-tags-scrollable::-webkit-scrollbar,
+.post-tags-scrollable::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
+}
+
+/* Ensure tags are properly spaced and scrollable */
+.tag,
+.tag-featured {
+  display: inline-flex;
+  align-items: center;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.6875rem;
@@ -791,13 +875,18 @@ body {
   transition: all 0.2s ease;
   background-color: #dbeafe;
   color: #1e40af;
+  min-width: fit-content;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 
 .tag-featured {
   padding: 0.3125rem 0.625rem;
   font-size: 0.75rem;
-  background-color: #dbeafe;
-  color: #1e40af;
 }
 
 /* All tags now use the same blue color - removing individual color variations */
