@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/blog/Header";
 import Footer from "@/components/blog/Footer";
 
-const montserrat = Montserrat({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   preload: true,
@@ -40,7 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={montserrat.className}
+        className={inter.className}
         style={{
           WebkitFontSmoothing: "antialiased",
           MozOsxFontSmoothing: "grayscale",

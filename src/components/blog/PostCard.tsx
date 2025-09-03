@@ -35,38 +35,18 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
     if (!tagsElement) return;
 
     const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      tagsElement.scrollLeft += e.deltaY;
-    };
-
-    const handleMouseDown = (e: MouseEvent) => {
-      if (e.button !== 0) return; // Only left click
-
-      const startX = e.pageX - tagsElement.offsetLeft;
-      const scrollLeft = tagsElement.scrollLeft;
-
-      const handleMouseMove = (e: MouseEvent) => {
+      // Only handle vertical scroll events (mouse wheel)
+      // Let horizontal scroll pass through naturally for trackpad
+      if (e.deltaY !== 0 && e.deltaX === 0) {
         e.preventDefault();
-        const x = e.pageX - tagsElement.offsetLeft;
-        const walk = (x - startX) * 2;
-        tagsElement.scrollLeft = scrollLeft - walk;
-      };
-
-      const handleMouseUp = () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+        tagsElement.scrollLeft += e.deltaY;
+      }
     };
 
     tagsElement.addEventListener("wheel", handleWheel, { passive: false });
-    tagsElement.addEventListener("mousedown", handleMouseDown);
 
     return () => {
       tagsElement.removeEventListener("wheel", handleWheel);
-      tagsElement.removeEventListener("mousedown", handleMouseDown);
     };
   }, []);
 
@@ -95,7 +75,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
                   color: "#2d3748",
                   lineHeight: "1.3",
                   letterSpacing: "-0.01em",
-                  margin: featured ? "2rem 0 0 0" : "0",
+                  margin: featured ? "0.5rem 0 0 0" : "0",
                   display: "-webkit-box",
                   WebkitBoxOrient: "vertical",
                   WebkitLineClamp: 2,
@@ -132,6 +112,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
                 fontWeight: "400",
                 fontStyle: "italic",
                 width: "100%",
+                marginTop: featured ? "0.5rem" : "0rem",
               }}
             >
               <time dateTime={post.date}>
@@ -171,11 +152,14 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
               ref={tagsRef}
               className="card-tags-scrollable"
               style={{
+                overflowX: "auto",
+                overflowY: "hidden",
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
                 WebkitOverflowScrolling: "touch",
                 scrollBehavior: "smooth",
                 overscrollBehaviorX: "contain",
+                touchAction: "pan-x pan-y",
               }}
             >
               {uniqueTags.map((tag, index) => (
