@@ -12,6 +12,38 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Avenir";
+  src: url("/fonts/AvenirLTStd-Heavy.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("/fonts/AvenirLTStd-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("/fonts/AvenirLTStd-Roman.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("/fonts/AvenirLTStd-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Global synchronized gradient and theme variables */
 :root {
   --hero-gradient: linear-gradient(
@@ -55,7 +87,7 @@
 
 /* Custom base styles with optimized fonts */
 html {
-  font-family: Inter, sans-serif;
+  font-family: "Avenir", sans-serif;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -146,7 +178,7 @@ body {
 }
 
 .prose-custom code {
-  font-family: Inter, sans-serif;
+  font-family: "Avenir", sans-serif;
   background-color: #f7fafc;
   color: #2d3748;
   padding: 0.125rem 0.25rem;
@@ -156,7 +188,7 @@ body {
 }
 
 .prose-custom pre {
-  font-family: Inter, sans-serif;
+  font-family: "Avenir", sans-serif;
   overflow-x: auto;
   margin: 1.5rem 0;
   border-radius: 0.5rem;
