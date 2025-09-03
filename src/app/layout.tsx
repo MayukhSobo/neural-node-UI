@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/blog/Header";
 import Footer from "@/components/blog/Footer";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-});
 
 export const metadata: Metadata = {
   title: "Data Blog - A Data Scientist's Journey",
@@ -40,7 +33,6 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={inter.className}
         style={{
           WebkitFontSmoothing: "antialiased",
           MozOsxFontSmoothing: "grayscale",

@@ -23,7 +23,7 @@ function Code({ children, className }: CodeProps) {
           marginTop: 0,
           marginBottom: "1.5rem",
           padding: "1.25rem",
-          fontFamily: "var(--font-primary), Inter, sans-serif",
+          fontFamily: "var(--font-primary), Avenir, sans-serif",
           fontSize: "14px",
           lineHeight: "1.5",
         }}
@@ -41,7 +41,7 @@ function Code({ children, className }: CodeProps) {
         padding: "0.25rem 0.5rem",
         borderRadius: "4px",
         fontSize: "0.9em",
-        fontFamily: "var(--font-primary), Inter, sans-serif",
+        fontFamily: "var(--font-primary), Avenir, sans-serif",
         fontWeight: "500",
       }}
     >
