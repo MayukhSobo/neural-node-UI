@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Header from "@/components/blog/Header";
 import Footer from "@/components/blog/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
+import ThemeMetaTags from "@/components/ThemeMetaTags";
 
 export const metadata: Metadata = {
   title: "Data Blog - A Data Scientist's Journey",
@@ -16,6 +17,18 @@ export const metadata: Metadata = {
     "LaTeX",
   ],
   authors: [{ name: "Data Scientist" }],
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "msapplication-navbutton-color": "#f7f8fa",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // This ensures proper handling of iPhone notch/dynamic island
+  themeColor: "#f7f8fa", // Initial light theme color - will be updated dynamically
 };
 
 export default function RootLayout({
@@ -44,6 +57,7 @@ export default function RootLayout({
         }}
       >
         <ThemeProvider>
+          <ThemeMetaTags />
           <Header />
           <main style={{ flexGrow: 1 }}>{children}</main>
           <Footer />
