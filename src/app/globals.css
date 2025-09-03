@@ -118,6 +118,12 @@
   --shadow-pagination: 0 4px 16px rgba(0, 0, 0, 0.1);
   
   --hamburger-color: #374151;
+  
+  /* Light theme scrollbar colors */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(0, 0, 0, 0.1);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.2);
+  --scrollbar-thumb-active: rgba(0, 0, 0, 0.3);
 }
 
 :root.dark {
@@ -181,6 +187,12 @@
   --shadow-pagination: 0 4px 16px rgba(0, 0, 0, 0.4);
   
   --hamburger-color: #f8fafc;
+  
+  /* Dark theme scrollbar colors */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-active: rgba(255, 255, 255, 0.3);
 }
 
 /* Synchronized gradient animation class */
@@ -212,6 +224,42 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* Theme-aware custom scrollbar styles */
+* {
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* WebKit scrollbar styling */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
 }
 
 /* Custom typography for blog content */
@@ -958,7 +1006,7 @@ body {
   margin: -0.25rem 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none !important; /* Firefox - override theme scrollbar */
   -ms-overflow-style: none; /* IE and Edge */
   width: 100%;
   max-width: 100%;
@@ -977,8 +1025,6 @@ body {
   user-select: none;
   /* Desktop mouse scrolling */
   cursor: grab;
-  /* Enable mouse wheel scrolling */
-  scrollbar-width: none;
   /* Ensure it's interactive */
   pointer-events: auto;
 }
@@ -995,9 +1041,9 @@ body {
 
 .card-tags-scrollable::-webkit-scrollbar,
 .post-tags-scrollable::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-  width: 0;
-  height: 0;
+  display: none !important; /* Chrome, Safari, Opera - override theme scrollbar */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Ensure tags are properly spaced and scrollable */
