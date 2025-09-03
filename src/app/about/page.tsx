@@ -9,7 +9,7 @@ export default function AboutPage() {
           style={{
             fontSize: "2.25rem",
             fontWeight: "700",
-            color: "#111827",
+            color: "var(--text-primary)",
             marginBottom: "2rem",
           }}
         >
@@ -20,7 +20,7 @@ export default function AboutPage() {
           <p
             style={{
               fontSize: "1.125rem",
-              color: "#374151",
+              color: "var(--text-secondary)",
               marginBottom: "1.5rem",
             }}
           >

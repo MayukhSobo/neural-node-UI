@@ -38,7 +38,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <h2 style={{ 
             fontSize: '1.875rem', 
             fontWeight: '700', 
-            color: '#2d3748', 
+            color: 'var(--text-primary)', 
             margin: 0,
             letterSpacing: '-0.02em',
             display: 'flex',
@@ -49,7 +49,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <span style={{
               fontSize: '1rem',
               fontWeight: '400',
-              color: '#9ca3af',
+              color: 'var(--text-muted)',
               letterSpacing: '0'
             }}>
               ({posts.length}/{totalPosts})
@@ -78,7 +78,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             />
           </>
         ) : (
-          <p style={{ textAlign: 'center', color: '#6b7280' }}>No posts found.</p>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No posts found.</p>
         )}
       </div>
     </div>

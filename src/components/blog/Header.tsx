@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
@@ -17,16 +18,6 @@ export default function Header() {
   };
 
   useEffect(() => {
-    // Check for saved theme preference or default to light
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const initialDark = savedTheme === "dark" || (!savedTheme && prefersDark);
-
-    setIsDark(initialDark);
-    document.documentElement.classList.toggle("dark", initialDark);
-
     const handleScroll = () => {
       // Trigger when scrolled past hero section (roughly 400px)
       setIsScrolled(window.scrollY > 400);
@@ -35,13 +26,6 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const toggleTheme = () => {
-    const newDark = !isDark;
-    setIsDark(newDark);
-    document.documentElement.classList.toggle("dark", newDark);
-    localStorage.setItem("theme", newDark ? "dark" : "light");
-  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -107,9 +91,9 @@ export default function Header() {
             <button
               onClick={toggleTheme}
               className="theme-toggle"
-              aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+              aria-label={`Switch to ${theme === 'dark' ? "light" : "dark"} theme`}
             >
-              {isDark ? (
+              {theme === 'dark' ? (
                 // Sun icon for light mode
                 <svg
                   width="20"
@@ -149,55 +133,16 @@ export default function Header() {
               className={`hamburger-line ${
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
-              style={{
-                backgroundColor:
-                  isDark && isScrolled
-                    ? "#1f2937"
-                    : isDark
-                    ? "#e2e8f0"
-                    : "#1f2937",
-                width: "100%",
-                height: "3px",
-                borderRadius: "2px",
-                transition: "all 0.3s ease",
-                transformOrigin: "center",
-              }}
             ></span>
             <span
               className={`hamburger-line ${
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
-              style={{
-                backgroundColor:
-                  isDark && isScrolled
-                    ? "#1f2937"
-                    : isDark
-                    ? "#e2e8f0"
-                    : "#1f2937",
-                width: "100%",
-                height: "3px",
-                borderRadius: "2px",
-                transition: "all 0.3s ease",
-                transformOrigin: "center",
-              }}
             ></span>
             <span
               className={`hamburger-line ${
                 isMobileMenuOpen ? "hamburger-line-open" : ""
               }`}
-              style={{
-                backgroundColor:
-                  isDark && isScrolled
-                    ? "#1f2937"
-                    : isDark
-                    ? "#e2e8f0"
-                    : "#1f2937",
-                width: "100%",
-                height: "3px",
-                borderRadius: "2px",
-                transition: "all 0.3s ease",
-                transformOrigin: "center",
-              }}
             ></span>
           </button>
         </div>
@@ -249,9 +194,9 @@ export default function Header() {
                 closeMobileMenu();
               }}
               className="mobile-theme-toggle"
-              aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+              aria-label={`Switch to ${theme === 'dark' ? "light" : "dark"} theme`}
             >
-              {isDark ? (
+              {theme === 'dark' ? (
                 <svg
                   width="24"
                   height="24"

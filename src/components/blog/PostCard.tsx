@@ -72,7 +72,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
                 style={{
                   fontSize: featured ? "1.375rem" : "1.125rem",
                   fontWeight: "600",
-                  color: "#2d3748",
+                  color: "var(--text-primary)",
                   lineHeight: "1.3",
                   letterSpacing: "-0.01em",
                   margin: featured ? "0.8rem 0 0 0" : "0",
@@ -108,7 +108,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
                 display: "flex",
                 alignItems: "center",
                 fontSize: "0.75rem",
-                color: "#6b7280",
+                color: "var(--text-muted)",
                 fontWeight: "400",
                 fontStyle: "italic",
                 width: "100%",
@@ -118,7 +118,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
               <time dateTime={post.date}>
                 {format(new Date(post.date), "MMM dd, yyyy")}
               </time>
-              <span style={{ margin: "0 0.625rem", color: "#9ca3af" }}>•</span>
+              <span style={{ margin: "0 0.625rem", color: "var(--text-muted)" }}>•</span>
               <span>{post.readingTime}</span>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function PostCard({ post, featured = false }: PostCardProps) {
           <div className="card-excerpt">
             <p
               style={{
-                color: "#4a5568",
+                color: "var(--text-secondary)",
                 fontSize: featured ? "15px" : "14px",
                 lineHeight: "1.5",
                 margin: 0,

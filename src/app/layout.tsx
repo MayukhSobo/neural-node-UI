@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/blog/Header";
 import Footer from "@/components/blog/Footer";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata: Metadata = {
   title: "Data Blog - A Data Scientist's Journey",
@@ -42,9 +43,11 @@ export default function RootLayout({
           flexDirection: "column",
         }}
       >
-        <Header />
-        <main style={{ flexGrow: 1 }}>{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <Header />
+          <main style={{ flexGrow: 1 }}>{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );
